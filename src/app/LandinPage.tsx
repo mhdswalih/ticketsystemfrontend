@@ -346,7 +346,6 @@ const TheaterTicketSystem: React.FC = () => {
                         {rowSeats.map(seat => {
                           const isBooked = seat.status === 'booked';
                           const isSelected = selectedSeat?.id === seat.id;
-                          const bookedUser = bookedUsers.find(user => user.seatId === seat.id);
                           
                           return (
                             <button
