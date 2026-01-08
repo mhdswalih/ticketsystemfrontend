@@ -103,7 +103,7 @@ const TheaterTicketSystem: React.FC = () => {
       
       // First, get all users (bookings)
       const response = await fetch('https://ticketsystembackend-3.onrender.com/get-bookings');
-      console.log('Response status:', response.status);
+      console.log('Response status:', response);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
