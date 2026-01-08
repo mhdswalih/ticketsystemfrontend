@@ -91,68 +91,70 @@ const TheaterTicketSystem: React.FC = () => {
     setShowModal(true);
   };
 
-  const fetchData = async (showRefresh = false) => {
-    try {
-      if (showRefresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-      
-      console.log('Fetching data from backend...');
-      
-      // First, get all users (bookings)
-      const response = await fetch('https://ticketsystembackend-3.onrender.com/get-bookings');
-      console.log('Response status:', response);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('Bookings data:', data);
-      
-      // Handle different response structures
-      let usersData: BookedUser[];
-      if (Array.isArray(data)) {
-        usersData = data;
-      } else if (data.data && Array.isArray(data.data)) {
-        usersData = data.data;
-      } else if (data.users && Array.isArray(data.users)) {
-        usersData = data.users;
-      } else {
-        console.warn('Unexpected response format, using empty array');
-        usersData = [];
-      }
-      
-      // Filter only users who have booked seats
-      const bookedUsersData = usersData.filter(user => user.seatBooked);
-      setBookedUsers(bookedUsersData);
-      console.log('Booked users:', bookedUsersData);
-      
-      // Generate all 80 seats
-      const allSeats = generateAllSeats();
-      
-      // Mark seats as booked based on user data
-      const seatsWithBookings = markBookedSeats(allSeats, bookedUsersData);
-      
-      setSeats(seatsWithBookings);
-      console.log('Total seats after marking:', seatsWithBookings.length);
-      console.log('Booked seats count:', seatsWithBookings.filter(s => s.status === 'booked').length);
-      
-      setError(null);
-      
-    } catch (err) {
-      console.error('Error fetching bookings:', err);
-      setError('Failed to load seat data. Using demo data instead.');
-      // Use generated seats as fallback
-      setSeats(generateAllSeats());
-      setBookedUsers([]);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+ const fetchData = async (showRefresh = false) => {
+  try {
+    if (showRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
     }
-  };
+    
+    console.log('Fetching data from backend...');
+    
+    // First, get all users (bookings)
+    const response = await fetch('https://ticketsystembackend-3.onrender.com/get-bookings');
+    console.log('Response status:', response.status, response.statusText);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Error response:', errorText);
+      throw new Error(`HTTP error! status: ${response.status}: ${errorText}`);
+    }
+    
+    const data = await response.json();
+    console.log('Bookings data:', JSON.stringify(data, null, 2));
+    
+    // Handle different response structures
+    let usersData: BookedUser[];
+    if (Array.isArray(data)) {
+      usersData = data;
+    } else if (data.data && Array.isArray(data.data)) {
+      usersData = data.data;
+    } else if (data.users && Array.isArray(data.users)) {
+      usersData = data.users;
+    } else {
+      console.warn('Unexpected response format:', data);
+      usersData = [];
+    }
+    
+    // Filter only users who have booked seats
+    const bookedUsersData = usersData.filter(user => user.seatBooked);
+    console.log('Filtered booked users:', bookedUsersData);
+    
+    setBookedUsers(bookedUsersData);
+    
+    // Generate all 80 seats
+    const allSeats = generateAllSeats();
+    
+    // Mark seats as booked based on user data
+    const seatsWithBookings = markBookedSeats(allSeats, bookedUsersData);
+    
+    setSeats(seatsWithBookings);
+    console.log('Booked seats:', seatsWithBookings.filter(s => s.status === 'booked'));
+    
+    setError(null);
+    
+  } catch (err:any) {
+    console.error('Full error in fetchData:', err);
+    setError(`Failed to load seat data: ${err.message}`);
+    // Use generated seats as fallback
+    setSeats(generateAllSeats());
+    setBookedUsers([]);
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
+  }
+};
 
   useEffect(() => {
     fetchData();
@@ -194,6 +196,7 @@ const TheaterTicketSystem: React.FC = () => {
       console.log('Sending booking data:', bookingData);
       
       const response = await fetch('https://ticketsystembackend-3.onrender.com/confirm-booking', {
+
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
