@@ -102,7 +102,7 @@ const TheaterTicketSystem: React.FC = () => {
       console.log('Fetching data from backend...');
       
       // First, get all users (bookings)
-      const response = await fetch('http://localhost:3000/get-bookings');
+      const response = await fetch('https://ticketsystembackend-3.onrender.com/get-bookings');
       console.log('Response status:', response.status);
       
       if (!response.ok) {
@@ -193,7 +193,7 @@ const TheaterTicketSystem: React.FC = () => {
 
       console.log('Sending booking data:', bookingData);
       
-      const response = await fetch('http://localhost:3000/confirm-booking', {
+      const response = await fetch('https://ticketsystembackend-3.onrender.com/confirm-booking', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
